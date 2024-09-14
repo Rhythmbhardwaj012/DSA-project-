@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sudoku Solver</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+            margin: 0;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        .sudoku-grid {
+            display: grid;
+            grid-template-columns: repeat(9, 50px);
+            grid-template-rows: repeat(9, 50px);
+            gap: 2px;
+            margin-bottom: 20px;
+        }
+
+        .sudoku-grid input {
+            width: 50px;
+            height: 50px;
+            text-align: center;
+            font-size: 20px;
+            border: 1px solid #ccc;
+        }
+
+        /* Bold grid lines for 3x3 blocks */
+        .sudoku-grid input:nth-child(3n) {
+            border-right: 2px solid black;
+        }
+
+        .sudoku-grid input:nth-last-child(-n+9):nth-child(1),
+        .sudoku-grid input:nth-last-child(-n+9):nth-child(2),
+        .sudoku-grid input:nth-last-child(-n+9):nth-child(3) {
+            border-bottom: 2px solid black;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:disabled {
+            background-color: #ccc;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Sudoku Solver</h1>
+    <div class="sudoku-grid" id="sudoku-grid">
+        <!-- 81 input fields for the Sudoku grid -->
+        <script>
+            for (let i = 0; i < 81; i++) {
+                document.write('<input type="text" maxlength="1" id="cell-' + i + '">');
+            }
+        </script>
+    </div>
+    <button id="solve-button">Solve Sudoku</button>
+
+    <script>
+        let N = 9;
+
+        // Solving the Sudoku using backtracking
+        function solveSudoku(grid, row, col) {
+            if (row == N - 1 && col == N) return true;
+
+            if (col == N) {
+                row++;
+                col = 0;
+            }
+
+            if (grid[row][col] != 0) return solveSudoku(grid, row, col + 1);
+
+            for (let num = 1; num <= 9; num++) {
+                if (isSafe(grid, row, col, num)) {
+                    grid[row][col] = num;
+
+                    if (solveSudoku(grid, row, col + 1)) return true;
+
+                    grid[row][col] = 0;  // Backtrack
+                }
+            }
+
+            return false;
+        }
+
+        // Check if placing a number is safe
+        function isSafe(grid, row, col, num) {
+            for (let x = 0; x < N; x++) {
+                if (grid[row][x] == num || grid[x][col] == num) return false;
+            }
+
+            let startRow = row - row % 3, startCol = col - col % 3;
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    if (grid[i + startRow][j + startCol] == num) return false;
+                }
+            }
+
+            return true;
+        }
+
+        // Convert board from input fields to a 2D array
+        function getBoard() {
+            let grid = [];
+            for (let i = 0; i < N; i++) {
+                grid[i] = [];
+                for (let j = 0; j < N; j++) {
+                    let val = document.getElementById('cell-' + (i * N + j)).value;
+                    grid[i][j] = val === "" ? 0 : parseInt(val);
+                }
+            }
+            return grid;
+        }
+
+        // Display the solution on the board
+        function displaySolution(grid) {
+            for (let i = 0; i < N; i++) {
+                for (let j = 0; j < N; j++) {
+                    document.getElementById('cell-' + (i * N + j)).value = grid[i][j];
+                }
+            }
+        }
+
+        // Handle the click event for solving the Sudoku
+        document.getElementById("solve-button").addEventListener("click", function() {
+            let grid = getBoard();
+            console.log("Initial grid:", grid);
+
+            if (solveSudoku(grid, 0, 0)) {
+                console.log("Solved grid:", grid);
+                displaySolution(grid);
+            } else {
+                alert("Invalid board!");  // Show popup when no solution exists
+                console.log("No solution exists!");
+            }
+        });
+    </script>
+</body>
+</html>
